@@ -1,0 +1,4 @@
+This is client/server solution created as simple multi-user chat application 
+from http://cs.lmu.edu/~ray/notes/javanetexamples/ using Java. It's functional 
+but not fully featured application and will be improved later. Also in parralel 
+will be added with same functionality application using C and C++.
