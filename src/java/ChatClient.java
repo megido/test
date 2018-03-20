@@ -68,6 +68,13 @@ public class ChatClient {
 	}
 
 	/**
+	 * Show error message
+	 */
+	private void showErrorMessage(String mess) {
+		JOptionPane.showMessageDialog(frame, mess, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+
+	/**
 	 * Prompt for and return the address of the server.
 	 */
 	private String getServerAddress() {
@@ -96,20 +103,43 @@ public class ChatClient {
 
 		// Make connection and initialize streams
 		String serverAddress = getServerAddress();
-		Socket socket = new Socket(serverAddress, 9001);
-		in = new BufferedReader(new InputStreamReader(
-			socket.getInputStream()));
-		out = new PrintWriter(socket.getOutputStream(), true);
+		Socket socket;
+		// pressed cancel or server address is blank
+		if (serverAddress == null || serverAddress.length() < 1) {
+			System.exit(1);
+		}
+		try {
+			socket = new Socket(serverAddress, 9001);
+			in = new BufferedReader(new InputStreamReader(
+				socket.getInputStream()));
+			out = new PrintWriter(socket.getOutputStream(), true);
+		} catch (java.net.UnknownHostException eh) {
+			showErrorMessage("Unknown Host ["+serverAddress+"]");
+			System.exit(1);
+		} catch (java.net.ConnectException ec) {
+			showErrorMessage(ec.getMessage());
+			System.exit(1);
+		} catch (Exception e) {
+			showErrorMessage(e.getMessage());
+			System.exit(1);
+		}
 
 		// Process all messages from server, according to the protocol.
-		while (true) {
-			String line = in.readLine();
-			if (line.startsWith("SUBMITNAME")) {
-				out.println(getName());
-			} else if (line.startsWith("NAMEACCEPTED")) {
-				textField.setEditable(true);
-			} else if (line.startsWith("MESSAGE")) {
-				messageArea.append(line.substring(8) + "\n");
+		String line = "";
+		try {
+			while (true) {
+				line = in.readLine();
+				if (line.startsWith("SUBMITNAME")) {
+					out.println(getName());
+				} else if (line.startsWith("NAMEACCEPTED")) {
+					textField.setEditable(true);
+				} else if (line.startsWith("MESSAGE")) {
+					messageArea.append(line.substring(8) + "\n");
+				}
+			}
+		} catch (Exception e) {
+			if (line == null) {
+				showErrorMessage("Lost connection.");
 			}
 		}
 	}
